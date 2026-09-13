@@ -41,9 +41,71 @@ const movieCatalog = [
 ];
 
 const movies = movieCatalog.map((movie) => movie.title);
+const continuityByTitle = {
+  'Godzilla (1954)': 'Showa era',
+  'Godzilla Raids Again': 'Showa era',
+  'King Kong vs. Godzilla': 'Showa era',
+  'Mothra vs. Godzilla': 'Showa era',
+  'Ghidorah, the Three-Headed Monster': 'Showa era',
+  'Invasion of Astro-Monster': 'Showa era',
+  'Ebirah, Horror of the Deep': 'Showa era',
+  'Son of Godzilla': 'Showa era',
+  'Destroy All Monsters': 'Showa era',
+  'All Monsters Attack': 'Showa era',
+  'Godzilla vs. Hedorah': 'Showa era',
+  'Godzilla vs. Gigan': 'Showa era',
+  'Godzilla vs. Megalon': 'Showa era',
+  'Godzilla vs. Mechagodzilla': 'Showa era',
+  'Terror of Mechagodzilla': 'Showa era',
+  'Godzilla 1985': 'Heisei era',
+  'Godzilla vs. Biollante': 'Heisei era',
+  'Godzilla vs. King Ghidorah': 'Heisei era',
+  'Godzilla and Mothra: The Battle for Earth': 'Heisei era',
+  'Godzilla vs. Mechagodzilla II': 'Heisei era',
+  'Godzilla vs. SpaceGodzilla': 'Heisei era',
+  'Godzilla vs. Destoroyah': 'Heisei era',
+  'Godzilla 2000': 'Millennium era',
+  'Godzilla vs. Megaguirus': 'Millennium era',
+  'Godzilla, Mothra and King Ghidorah: Giant Monsters All-Out Attack': 'Millennium era',
+  'Godzilla: Final Wars': 'Millennium era',
+  'Godzilla Against Mechagodzilla': 'Millennium era: Kiryu series',
+  'Godzilla: Tokyo S.O.S.': 'Millennium era: Kiryu series',
+  'Godzilla (1998)': 'Standalone films',
+  'Shin Godzilla': 'Standalone films',
+  'Godzilla: Planet of the Monsters': 'Standalone films: anime trilogy',
+  'Godzilla: City on the Edge of Battle': 'Standalone films: anime trilogy',
+  'Godzilla: The Planet Eater': 'Standalone films: anime trilogy',
+  'Godzilla Minus One': 'Standalone films: Minus continuity',
+  'Godzilla Minus Zero': 'Standalone films: Minus continuity',
+  'Godzilla (2014)': 'MonsterVerse',
+  'Godzilla: King of the Monsters': 'MonsterVerse',
+  'Godzilla vs. Kong': 'MonsterVerse',
+  'Godzilla X Kong: The New Empire': 'MonsterVerse'
+};
+const continuityOrder = [
+  'Showa era',
+  'Heisei era',
+  'Millennium era',
+  'Millennium era: Kiryu series',
+  'Standalone films',
+  'Standalone films: anime trilogy',
+  'Standalone films: Minus continuity',
+  'MonsterVerse'
+];
+const continuityDescriptions = {
+  'Showa era': 'Watch in release order. Destroy All Monsters is canonically last, but release order works well.',
+  'Heisei era': 'Watch in release order. This is the most connected main storyline.',
+  'Millennium era': 'Mostly standalone films; release order is an easy way through them.',
+  'Millennium era: Kiryu series': 'Watch in order: Against Mechagodzilla, then Tokyo S.O.S.',
+  'Standalone films': 'Each film stands on its own and can be watched in any order.',
+  'Standalone films: anime trilogy': 'Watch in release order: Planet of the Monsters, City on the Edge of Battle, then The Planet Eater.',
+  'Standalone films: Minus continuity': 'Watch in release order: Minus One, then Minus Zero.',
+  MonsterVerse: 'Watch in release order; these films share one continuing timeline.'
+};
 const movieLookup = Object.fromEntries(
   movieCatalog.map((movie, index) => [movie.title, {
     ...movie,
+    continuity: continuityByTitle[movie.title] || 'Continuity not classified',
     poster: `posters/${String(index + 1).padStart(2, '0')}.jpg`,
     fallbackPoster: createPoster(movie.title, movie.accent)
   }])
@@ -362,6 +424,28 @@ function cancelPendingResult() {
   hideResultModal();
 }
 
+async function addMovieToWatchlist(title, button) {
+  if (watched.some((entry) => entry.title === title)) {
+    return;
+  }
+
+  button.disabled = true;
+  const movie = movieLookup[title];
+  const poster = await resolveMoviePoster(title);
+
+  watched.push({
+    title,
+    watchedAt: new Date().toISOString(),
+    releaseDate: movie.releaseDate,
+    runtime: movie.runtime,
+    poster
+  });
+
+  saveWatched();
+  statusLine.textContent = `${title} was added to the watchlist.`;
+  renderAll();
+}
+
 function renderAvailableList() {
   const available = getAvailableMovies();
 
@@ -370,8 +454,34 @@ function renderAvailableList() {
     return;
   }
 
-  availableList.innerHTML = available
-    .map((movie) => `<li>${movie}</li>`)
+  const groupedMovies = available.reduce((groups, title) => {
+    const continuity = movieLookup[title].continuity;
+    groups[continuity] ||= [];
+    groups[continuity].push(title);
+    return groups;
+  }, {});
+
+  availableList.innerHTML = continuityOrder
+    .filter((continuity) => groupedMovies[continuity]?.length)
+    .map((continuity) => `
+      <li class="continuity-group">
+        <h3>${continuity}</h3>
+        <p class="continuity-description">${continuityDescriptions[continuity]}</p>
+        <ul class="continuity-movies">
+          ${groupedMovies[continuity]
+            .map((movie) => `
+              <li class="movie-pool-item">
+                <div class="movie-pool-copy">
+                  <span>${movie}</span>
+                  <small>Released ${formatReleaseDate(movieLookup[movie].releaseDate)}</small>
+                </div>
+                <button class="small-btn manual-watch-btn" type="button" data-title="${movie}">Add to watched</button>
+              </li>
+            `)
+            .join('')}
+        </ul>
+      </li>
+    `)
     .join('');
 }
 
@@ -593,6 +703,13 @@ resetBtn.addEventListener('click', () => {
 });
 
 downloadLogBtn.addEventListener('click', downloadLog);
+availableList.addEventListener('click', (event) => {
+  const button = event.target.closest('.manual-watch-btn');
+
+  if (button) {
+    addMovieToWatchlist(button.dataset.title, button);
+  }
+});
 resultCancelBtn?.addEventListener('click', cancelPendingResult);
 resultAddBtn?.addEventListener('click', addPendingResult);
 window.addEventListener('pointerdown', unlockAudioContext, { once: true });

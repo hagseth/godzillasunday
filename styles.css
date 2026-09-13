@@ -318,6 +318,72 @@ h1 {
   color: var(--text);
 }
 
+.movie-pool-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.continuity-group {
+  padding: 12px;
+}
+
+.continuity-group h3 {
+  margin: 0 0 10px;
+  color: #d4e157;
+  font-size: 0.84rem;
+  letter-spacing: 0.04em;
+}
+
+.continuity-description {
+  margin: -4px 0 10px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.continuity-movies {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.continuity-movies .movie-pool-item {
+  padding: 8px 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  border-top: 1px solid rgba(174, 211, 112, 0.1);
+}
+
+.movie-pool-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.movie-pool-copy small {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.manual-watch-btn {
+  flex: 0 0 auto;
+  padding: 7px 9px;
+  background: #314522;
+  border: 1px solid #a8c957;
+  color: #f3f8e9;
+  font-size: 0.72rem;
+}
+
+.manual-watch-btn:hover {
+  background: #4a642d;
+  border-color: #d4e157;
+}
+
 .history-list li {
   display: grid;
   gap: 4px;
