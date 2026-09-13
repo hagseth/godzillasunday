@@ -309,6 +309,11 @@ function launchConfetti() {
 }
 
 function showResultModal(movieTitle, poster) {
+  if (!resultModal || !resultPoster || !resultTitle || !resultDetails) {
+    statusLine.textContent = `${movieTitle} was selected. Refresh to choose whether to add it.`;
+    return;
+  }
+
   const movie = movieLookup[movieTitle];
   pendingResult = {
     title: movieTitle,
@@ -323,7 +328,9 @@ function showResultModal(movieTitle, poster) {
   resultTitle.textContent = movieTitle;
   resultDetails.textContent = formatMovieDetails(pendingResult);
   resultModal.hidden = false;
-  resultAddBtn.focus();
+  if (resultAddBtn) {
+    resultAddBtn.focus();
+  }
   launchConfetti();
 }
 
@@ -569,8 +576,8 @@ resetBtn.addEventListener('click', () => {
 });
 
 downloadLogBtn.addEventListener('click', downloadLog);
-resultCancelBtn.addEventListener('click', cancelPendingResult);
-resultAddBtn.addEventListener('click', addPendingResult);
+resultCancelBtn?.addEventListener('click', cancelPendingResult);
+resultAddBtn?.addEventListener('click', addPendingResult);
 window.addEventListener('pointerdown', unlockAudioContext, { once: true });
 spinBtn.addEventListener('click', spinWheel);
 
