@@ -136,6 +136,17 @@ h1 {
   margin: 8px auto 22px;
 }
 
+.wheel-rotator {
+  width: 100%;
+  height: 100%;
+  --idle-start: 0deg;
+  animation: idle-wheel-spin 32s linear infinite;
+}
+
+.wheel-rotator.is-spinning {
+  animation: none;
+}
+
 .wheel {
   position: relative;
   width: 100%;
@@ -144,8 +155,16 @@ h1 {
   background: conic-gradient(#f97316 0deg 36deg, #facc15 36deg 72deg, #38bdf8 72deg 108deg, #22c55e 108deg 144deg, #a78bfa 144deg 180deg, #f472b6 180deg 216deg, #fb7185 216deg 252deg, #f59e0b 252deg 288deg, #60a5fa 288deg 324deg, #14b8a6 324deg 360deg);
   border: 10px solid rgba(148, 163, 184, 0.25);
   box-shadow: inset 0 0 30px rgba(15, 23, 42, 0.65), 0 18px 36px rgba(15, 23, 42, 0.55);
-  transition: transform 3.2s cubic-bezier(0.15, 0.8, 0.23, 1);
   overflow: hidden;
+}
+
+@keyframes idle-wheel-spin {
+  from {
+    transform: rotate(var(--idle-start));
+  }
+  to {
+    transform: rotate(calc(var(--idle-start) + 360deg));
+  }
 }
 
 .wheel::before {
@@ -183,7 +202,7 @@ h1 {
   transform: translate(-50%, -50%);
   width: 88px;
   text-align: center;
-  font-size: 0.62rem;
+  font-size: 0.56rem;
   letter-spacing: 0.02em;
   font-weight: 700;
   color: #f8fafc;

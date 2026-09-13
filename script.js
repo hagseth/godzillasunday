@@ -51,6 +51,7 @@ const movieLookup = Object.fromEntries(
 
 const STORAGE_KEY = 'godzilla-sunday-watch-log';
 const wheel = document.getElementById('wheel');
+const wheelRotator = document.getElementById('wheel-rotator');
 const wheelLabels = document.getElementById('wheel-labels');
 const statusLine = document.getElementById('status-line');
 const availableList = document.getElementById('available-list');
@@ -239,6 +240,53 @@ function formatMovieDetails(entry) {
   return `Released ${formatReleaseDate(entry.releaseDate)} | ${entry.runtime}`;
 }
 
+function getWheelLabel(title) {
+  const yearMatch = title.match(/\((\d{4})\)$/);
+  if (yearMatch) {
+    return yearMatch[1];
+  }
+
+  const specialLabels = {
+    'Godzilla Raids Again': 'Raids Again',
+    'King Kong vs. Godzilla': 'Kong vs. Godzilla',
+    'Mothra vs. Godzilla': 'Mothra',
+    'Ghidorah, the Three-Headed Monster': 'Ghidorah',
+    'Invasion of Astro-Monster': 'Astro-Monster',
+    'Ebirah, Horror of the Deep': 'Ebirah',
+    'Son of Godzilla': 'Son of G',
+    'Destroy All Monsters': 'Destroy All',
+    'All Monsters Attack': 'All Monsters',
+    'Terror of Mechagodzilla': 'Terror Mecha',
+    'Godzilla 1985': '1985',
+    'Godzilla 2000': '2000',
+    'Godzilla and Mothra: The Battle for Earth': 'Mothra Battle',
+    'Godzilla, Mothra and King Ghidorah: Giant Monsters All-Out Attack': 'G.M.K.',
+    'Godzilla Against Mechagodzilla': 'Against Mecha',
+    'Godzilla vs. Mechagodzilla II': 'Mecha II',
+    'Godzilla vs. SpaceGodzilla': 'vs. Space G',
+    'Godzilla vs. Destoroyah': 'vs. Destoroyah',
+    'Godzilla vs. Megaguirus': 'vs. Megaguirus',
+    'Godzilla vs. Biollante': 'vs. Biollante',
+    'Godzilla vs. King Ghidorah': 'vs. Ghidorah',
+    'Godzilla vs. Mechagodzilla': 'vs. Mecha',
+    'Godzilla vs. Hedorah': 'vs. Hedorah',
+    'Godzilla vs. Gigan': 'vs. Gigan',
+    'Godzilla vs. Megalon': 'vs. Megalon',
+    'Godzilla vs. Kong': 'vs. Kong',
+    'Godzilla X Kong: The New Empire': 'X Kong',
+    'Godzilla Minus One': 'Minus One',
+    'Godzilla Minus Zero': 'Minus Zero',
+    'Godzilla: Tokyo S.O.S.': 'Tokyo S.O.S.',
+    'Godzilla: Final Wars': 'Final Wars',
+    'Godzilla: Planet of the Monsters': 'Planet Monsters',
+    'Godzilla: City on the Edge of Battle': 'City Edge',
+    'Godzilla: The Planet Eater': 'Planet Eater',
+    'Godzilla: King of the Monsters': 'King Monsters'
+  };
+
+  return specialLabels[title] || title.replace(/^Godzilla\s+/, '').slice(0, 14);
+}
+
 function launchConfetti() {
   const colors = ['#d4e157', '#e4572e', '#6ea89b', '#f3f8e9', '#d4b83f'];
   const fragment = document.createDocumentFragment();
@@ -344,8 +392,10 @@ function renderWheel() {
     const angle = (index + 0.5) * segmentAngle;
     const textFlip = angle > 90 && angle < 270 ? 180 : 0;
     label.className = 'wheel-label';
-    label.textContent = movie;
-    label.style.transform = `translate(-50%, -50%) rotate(${angle}deg) translateY(-190px) rotate(${textFlip}deg)`;
+    label.textContent = getWheelLabel(movie);
+    label.title = movie;
+    label.setAttribute('aria-label', movie);
+    label.style.transform = `translate(-50%, -50%) rotate(${angle}deg) translateY(-190px) rotate(${90 + textFlip}deg)`;
     wheelLabels.appendChild(label);
   });
 }
@@ -442,6 +492,7 @@ function spinWheel() {
 
   unlockAudioContext();
   spinning = true;
+  wheelRotator.classList.add('is-spinning');
   spinBtn.disabled = true;
   statusLine.textContent = 'Spinning...';
   startSpinSound();
@@ -454,8 +505,8 @@ function spinWheel() {
   const pointerOffset = 360 - ((segmentCenter + 90) % 360);
   const nextRotation = currentRotation + extraTurns * 360 + pointerOffset;
 
-  wheel.style.transition = `transform ${SPIN_DURATION_MS}ms cubic-bezier(0.12, 0.82, 0.2, 1)`;
-  wheel.style.transform = `rotate(${nextRotation}deg)`;
+  wheelRotator.style.transition = `transform ${SPIN_DURATION_MS}ms cubic-bezier(0.12, 0.82, 0.2, 1)`;
+  wheelRotator.style.transform = `rotate(${nextRotation}deg)`;
 
   setTimeout(async () => {
     const poster = await resolveMoviePoster(selectedMovie);
@@ -470,6 +521,10 @@ function spinWheel() {
 
     saveWatched();
     currentRotation = nextRotation % 360;
+    wheelRotator.style.setProperty('--idle-start', `${currentRotation}deg`);
+    wheelRotator.style.transform = '';
+    wheelRotator.style.transition = '';
+    wheelRotator.classList.remove('is-spinning');
     spinning = false;
     spinBtn.disabled = false;
     stopSpinSound();
@@ -489,7 +544,9 @@ resetBtn.addEventListener('click', () => {
   watched = [];
   saveWatched();
   currentRotation = 0;
-  wheel.style.transform = 'rotate(0deg)';
+  wheelRotator.style.setProperty('--idle-start', '0deg');
+  wheelRotator.style.transform = 'rotate(0deg)';
+  wheelRotator.style.transition = '';
   statusLine.textContent = 'The pool has been reset. Ready for a new Sunday.';
   renderAll();
 });
