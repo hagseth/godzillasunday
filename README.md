@@ -12,6 +12,7 @@ A small browser app to randomly pick a Godzilla movie every Sunday.
 - reset button to restore the full movie list
 - local browser storage so the log stays saved on the same device
 - download button to export every spin as `log.txt`
+- poster images are stored locally in `posters/`, so the published site needs no API key or live poster service
 
 ## Run it locally
 

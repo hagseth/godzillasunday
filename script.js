@@ -42,11 +42,14 @@ const movieCatalog = [
 
 const movies = movieCatalog.map((movie) => movie.title);
 const movieLookup = Object.fromEntries(
-  movieCatalog.map((movie) => [movie.title, { ...movie, poster: createPoster(movie.title, movie.accent) }])
+  movieCatalog.map((movie, index) => [movie.title, {
+    ...movie,
+    poster: `posters/${String(index + 1).padStart(2, '0')}.jpg`,
+    fallbackPoster: createPoster(movie.title, movie.accent)
+  }])
 );
 
 const STORAGE_KEY = 'godzilla-sunday-watch-log';
-const DEFAULT_TMDB_API_KEY = 'REMOVED';
 const wheel = document.getElementById('wheel');
 const wheelLabels = document.getElementById('wheel-labels');
 const statusLine = document.getElementById('status-line');
@@ -144,7 +147,8 @@ function loadWatched() {
         releaseDate: 'Unknown release',
         runtime: 'Runtime unknown',
         accent: '#f97316',
-        poster: createPoster(normalizedTitle, '#f97316')
+        poster: createPoster(normalizedTitle, '#f97316'),
+        fallbackPoster: createPoster(normalizedTitle, '#f97316')
       };
 
       return {
@@ -152,7 +156,7 @@ function loadWatched() {
         watchedAt: entry.watchedAt || new Date().toISOString(),
         releaseDate: entry.releaseDate || movie.releaseDate || 'Unknown release',
         runtime: entry.runtime || movie.runtime || 'Runtime unknown',
-        poster: entry.poster || movie.poster
+        poster: movie.poster || entry.poster
       };
     });
   } catch (error) {
@@ -186,50 +190,12 @@ function downloadLog() {
   URL.revokeObjectURL(downloadUrl);
 }
 
-function getTmdbApiKey() {
-  return DEFAULT_TMDB_API_KEY;
-}
-
-async function fetchTmdbPoster(title) {
-  const apiKey = getTmdbApiKey();
-  if (!apiKey) {
-    return null;
-  }
-
-  try {
-    const response = await fetch(
-      `https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(title)}&include_adult=false&language=en-US&page=1&api_key=${apiKey}`
-    );
-
-    if (!response.ok) {
-      return null;
-    }
-
-    const data = await response.json();
-    const result = data.results?.find((movie) => {
-      const normalizedTitle = movie.title?.trim().toLowerCase();
-      const normalizedQuery = title.trim().toLowerCase();
-      return normalizedTitle === normalizedQuery || normalizedTitle.includes(normalizedQuery) || normalizedQuery.includes(normalizedTitle);
-    }) || data.results?.[0];
-
-    if (!result?.poster_path) {
-      return null;
-    }
-
-    return `https://image.tmdb.org/t/p/w500${result.poster_path}`;
-  } catch (error) {
-    console.warn('Unable to fetch TMDB poster:', error);
-    return null;
-  }
-}
-
 async function resolveMoviePoster(title) {
   if (posterCache.has(title)) {
     return posterCache.get(title);
   }
 
-  const tmdbPoster = await fetchTmdbPoster(title);
-  const poster = tmdbPoster || movieLookup[title]?.poster || createPoster(title, movieLookup[title]?.accent || '#f97316');
+  const poster = movieLookup[title]?.poster || movieLookup[title]?.fallbackPoster || createPoster(title, movieLookup[title]?.accent || '#f97316');
   posterCache.set(title, poster);
   return poster;
 }
