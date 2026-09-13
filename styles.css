@@ -426,8 +426,19 @@ h1 {
   color: #d4e6a8;
 }
 
-.result-ok-btn {
+.result-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.result-cancel-btn,
+.result-add-btn {
   min-width: 130px;
+}
+
+.result-add-btn {
+  margin: 0;
 }
 
 .confetti-container {

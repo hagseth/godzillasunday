@@ -64,10 +64,12 @@ const resultModal = document.getElementById('result-modal');
 const resultPoster = document.getElementById('result-poster');
 const resultTitle = document.getElementById('result-title');
 const resultDetails = document.getElementById('result-details');
-const resultOkBtn = document.getElementById('result-ok-btn');
+const resultCancelBtn = document.getElementById('result-cancel-btn');
+const resultAddBtn = document.getElementById('result-add-btn');
 const confettiContainer = document.getElementById('confetti-container');
 
 let watched = loadWatched();
+let pendingResult = null;
 let currentRotation = 0;
 let spinning = false;
 const posterCache = new Map();
@@ -308,23 +310,48 @@ function launchConfetti() {
 
 function showResultModal(movieTitle, poster) {
   const movie = movieLookup[movieTitle];
-  const entry = {
+  pendingResult = {
     title: movieTitle,
+    watchedAt: new Date().toISOString(),
     releaseDate: movie.releaseDate,
-    runtime: movie.runtime
+    runtime: movie.runtime,
+    poster
   };
 
   resultPoster.src = poster;
   resultPoster.alt = `${movieTitle} poster`;
   resultTitle.textContent = movieTitle;
-  resultDetails.textContent = formatMovieDetails(entry);
+  resultDetails.textContent = formatMovieDetails(pendingResult);
   resultModal.hidden = false;
-  resultOkBtn.focus();
+  resultAddBtn.focus();
   launchConfetti();
 }
 
 function hideResultModal() {
   resultModal.hidden = true;
+}
+
+function addPendingResult() {
+  if (!pendingResult) {
+    return;
+  }
+
+  watched.push(pendingResult);
+  saveWatched();
+  statusLine.textContent = `${pendingResult.title} was added to the watchlist.`;
+  pendingResult = null;
+  hideResultModal();
+  renderAll();
+}
+
+function cancelPendingResult() {
+  if (!pendingResult) {
+    return;
+  }
+
+  statusLine.textContent = `${pendingResult.title} stayed in the movie pool.`;
+  pendingResult = null;
+  hideResultModal();
 }
 
 function renderAvailableList() {
@@ -511,15 +538,6 @@ function spinWheel() {
   setTimeout(async () => {
     const poster = await resolveMoviePoster(selectedMovie);
 
-    watched.push({
-      title: selectedMovie,
-      watchedAt: new Date().toISOString(),
-      releaseDate: movieLookup[selectedMovie].releaseDate,
-      runtime: movieLookup[selectedMovie].runtime,
-      poster
-    });
-
-    saveWatched();
     currentRotation = nextRotation % 360;
     wheelRotator.style.setProperty('--idle-start', `${currentRotation}deg`);
     wheelRotator.style.transform = '';
@@ -529,7 +547,6 @@ function spinWheel() {
     spinBtn.disabled = false;
     stopSpinSound();
     statusLine.textContent = `${selectedMovie} is tonight's pick!`;
-    renderAll();
     showResultModal(selectedMovie, poster);
   }, SPIN_DURATION_MS);
 }
@@ -552,7 +569,8 @@ resetBtn.addEventListener('click', () => {
 });
 
 downloadLogBtn.addEventListener('click', downloadLog);
-resultOkBtn.addEventListener('click', hideResultModal);
+resultCancelBtn.addEventListener('click', cancelPendingResult);
+resultAddBtn.addEventListener('click', addPendingResult);
 window.addEventListener('pointerdown', unlockAudioContext, { once: true });
 spinBtn.addEventListener('click', spinWheel);
 
