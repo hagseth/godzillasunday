@@ -144,6 +144,8 @@ const wheel = document.getElementById('wheel');
 const wheelRotator = document.getElementById('wheel-rotator');
 const wheelLabels = document.getElementById('wheel-labels');
 const statusLine = document.getElementById('status-line');
+const watchedCount = document.getElementById('watched-count');
+const remainingCount = document.getElementById('remaining-count');
 const availableList = document.getElementById('available-list');
 const watchedList = document.getElementById('watched-list');
 const spinBtn = document.getElementById('spin-btn');
@@ -298,8 +300,7 @@ function getAvailableMovies() {
 
 function formatDate(dateString) {
   return new Date(dateString).toLocaleString([], {
-    dateStyle: 'medium',
-    timeStyle: 'short'
+    dateStyle: 'medium'
   });
 }
 
@@ -423,6 +424,8 @@ function showResultModal(movieTitle, poster) {
   resultPoster.alt = `${movieTitle} poster`;
   resultTitle.textContent = movieTitle;
   resultDetails.textContent = formatMovieDetails(pendingResult);
+  resultModal.classList.remove('preview-mode');
+  resultAddBtn.hidden = false;
   resultModal.hidden = false;
   if (resultAddBtn) {
     resultAddBtn.focus();
@@ -432,6 +435,28 @@ function showResultModal(movieTitle, poster) {
 
 function hideResultModal() {
   resultModal.hidden = true;
+  resultModal.classList.remove('preview-mode');
+  resultAddBtn.hidden = false;
+  resultCancelBtn.textContent = 'Cancel';
+}
+
+function showMoviePreview(title) {
+  const entry = watched.find((movie) => movie.title === title);
+
+  if (!entry) {
+    return;
+  }
+
+  pendingResult = null;
+  resultPoster.src = entry.poster;
+  resultPoster.alt = `${entry.title} poster`;
+  resultTitle.textContent = entry.title;
+  resultDetails.textContent = formatMovieDetails(entry);
+  resultModal.classList.add('preview-mode');
+  resultAddBtn.hidden = true;
+  resultCancelBtn.textContent = 'Close';
+  resultModal.hidden = false;
+  resultCancelBtn.focus();
 }
 
 function addPendingResult() {
@@ -449,6 +474,7 @@ function addPendingResult() {
 
 function cancelPendingResult() {
   if (!pendingResult) {
+    hideResultModal();
     return;
   }
 
@@ -537,11 +563,11 @@ function renderHistoryList() {
   watchedList.innerHTML = sorted
     .map(
       (entry) => `
-        <li class="history-item">
+        <li class="history-item" data-title="${entry.title}">
           <img class="history-poster" src="${entry.poster}" alt="${entry.title} poster" />
           <div class="history-copy">
             <div class="history-title">${entry.title}</div>
-            <div class="history-date">${formatDate(entry.watchedAt)}</div>
+            <div class="history-date">Watched: ${formatDate(entry.watchedAt)}</div>
             <div class="history-details">${formatMovieDetails(entry)}</div>
           </div>
         </li>
@@ -587,6 +613,8 @@ function renderWheel() {
 }
 
 function renderAll() {
+  watchedCount.textContent = watched.length;
+  remainingCount.textContent = getAvailableMovies().length;
   renderWheel();
   renderAvailableList();
   renderHistoryList();
@@ -749,6 +777,13 @@ availableList.addEventListener('click', (event) => {
 
   if (button) {
     addMovieToWatchlist(button.dataset.title, button);
+  }
+});
+watchedList.addEventListener('click', (event) => {
+  const item = event.target.closest('.history-item');
+
+  if (item) {
+    showMoviePreview(item.dataset.title);
   }
 });
 resultCancelBtn?.addEventListener('click', cancelPendingResult);

@@ -121,6 +121,24 @@ h1 {
   min-height: 1.2em;
 }
 
+.movie-progress {
+  display: flex;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.movie-progress span + span {
+  padding-left: 10px;
+  border-left: 1px solid rgba(174, 211, 112, 0.2);
+}
+
+.movie-progress strong {
+  color: #d4e157;
+  font-size: 1rem;
+}
+
 .wheel-area {
   position: relative;
   display: grid;
@@ -403,9 +421,6 @@ h1 {
 }
 
 .history-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
   padding: 10px;
 }
 
@@ -443,6 +458,10 @@ h1 {
 }
 
 .result-modal[hidden] {
+  display: none;
+}
+
+.result-modal.preview-mode .result-add-btn {
   display: none;
 }
 
