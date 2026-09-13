@@ -1,17 +1,17 @@
 :root {
-  --bg: #101815;
-  --panel: rgba(18, 31, 27, 0.84);
-  --panel-border: rgba(174, 211, 112, 0.24);
-  --card: #17231f;
-  --card-alt: #24332d;
+  --bg: #050907;
+  --panel: rgba(8, 16, 12, 0.9);
+  --panel-border: rgba(174, 211, 112, 0.18);
+  --card: #0b120f;
+  --card-alt: #15221b;
   --text: #edf5e4;
-  --muted: #a8b99e;
+  --muted: #8d9e88;
   --accent: #e4572e;
   --accent-2: #d4e157;
   --accent-3: #6ea89b;
   --success: #a8c957;
   --danger: #e4572e;
-  --shadow: rgba(3, 12, 9, 0.62);
+  --shadow: rgba(0, 0, 0, 0.78);
 }
 
 * {
@@ -23,9 +23,9 @@ body {
   min-height: 100vh;
   font-family: "Segoe UI", Tahoma, sans-serif;
   background-color: var(--bg);
-  background-image: radial-gradient(circle at 50% -10%, rgba(168, 201, 87, 0.16), transparent 30%),
+  background-image: radial-gradient(circle at 50% -10%, rgba(168, 201, 87, 0.1), transparent 30%),
     repeating-linear-gradient(135deg, rgba(174, 211, 112, 0.025) 0 2px, transparent 2px 22px),
-    linear-gradient(135deg, #07100d 0%, var(--bg) 48%, #1b2117 100%);
+    linear-gradient(135deg, #020403 0%, var(--bg) 48%, #0d1510 100%);
   color: var(--text);
 }
 
@@ -54,18 +54,6 @@ button {
   gap: 10px;
 }
 
-.godzilla-hero {
-  width: 76px;
-  height: 106px;
-  flex: 0 0 auto;
-  object-fit: cover;
-  object-position: center;
-  border: 2px solid rgba(168, 201, 87, 0.55);
-  border-radius: 10px;
-  box-shadow: 0 10px 24px rgba(3, 12, 9, 0.5);
-  transform: rotate(3deg);
-}
-
 .eyebrow {
   margin: 0 0 6px;
   text-transform: uppercase;
@@ -76,9 +64,15 @@ button {
 
 h1 {
   margin: 0;
-  font-size: clamp(2.2rem, 4vw, 3.4rem);
-  color: #f3f8e9;
-  text-shadow: 0 0 24px rgba(168, 201, 87, 0.2);
+  line-height: 1;
+}
+
+.title-logo {
+  display: block;
+  width: min(100%, 480px);
+  height: auto;
+  max-height: 150px;
+  object-fit: contain;
 }
 
 .layout {
@@ -88,7 +82,7 @@ h1 {
 }
 
 .card {
-  background: rgba(23, 35, 31, 0.94);
+  background: rgba(11, 18, 15, 0.96);
   border: 1px solid var(--panel-border);
   border-radius: 22px;
   box-shadow: 0 24px 80px var(--shadow);
@@ -112,9 +106,9 @@ h1 {
   justify-content: center;
   padding: 8px 12px;
   border-radius: 999px;
-  background: rgba(168, 201, 87, 0.13);
+  background: rgba(168, 201, 87, 0.1);
   color: #e9f5bc;
-  border: 1px solid rgba(168, 201, 87, 0.4);
+  border: 1px solid rgba(168, 201, 87, 0.32);
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -200,16 +194,16 @@ h1 {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 88px;
+  width: 112px;
   text-align: center;
-  font-size: 0.56rem;
+  font-size: 0.48rem;
   letter-spacing: 0.02em;
   font-weight: 700;
   color: #f8fafc;
   text-shadow: 0 2px 8px rgba(2, 6, 23, 0.8);
   white-space: normal;
   word-break: break-word;
-  line-height: 1.05;
+  line-height: 0.95;
 }
 
 .api-key-box {
@@ -315,9 +309,9 @@ h1 {
 .movie-list li,
 .history-list li {
   padding: 10px 12px;
-  background: rgba(36, 51, 45, 0.82);
+  background: rgba(21, 34, 27, 0.76);
   border-radius: 12px;
-  border: 1px solid rgba(174, 211, 112, 0.12);
+  border: 1px solid rgba(174, 211, 112, 0.1);
 }
 
 .movie-list li {
@@ -492,7 +486,4 @@ h1 {
     align-items: flex-start;
   }
 
-  .godzilla-hero {
-    order: 3;
-  }
 }

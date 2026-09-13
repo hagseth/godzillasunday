@@ -59,7 +59,6 @@ const watchedList = document.getElementById('watched-list');
 const spinBtn = document.getElementById('spin-btn');
 const resetBtn = document.getElementById('reset-btn');
 const downloadLogBtn = document.getElementById('download-log-btn');
-const godzillaHero = document.getElementById('godzilla-hero');
 const resultModal = document.getElementById('result-modal');
 const resultPoster = document.getElementById('result-poster');
 const resultTitle = document.getElementById('result-title');
@@ -203,14 +202,6 @@ async function resolveMoviePoster(title) {
   return poster;
 }
 
-async function loadGodzillaHero() {
-  const fallbackPoster = movieLookup['Godzilla (1954)'].poster;
-  godzillaHero.src = fallbackPoster;
-
-  const poster = await resolveMoviePoster('Godzilla (1954)');
-  godzillaHero.src = poster;
-}
-
 function getAvailableMovies() {
   return movies.filter((movie) => !watched.some((entry) => entry.title === movie));
 }
@@ -243,12 +234,22 @@ function formatMovieDetails(entry) {
 }
 
 function getWheelLabel(title) {
+  const specialLabels = {
+    'Godzilla (1954)': 'Godzilla',
+    'Godzilla (1998)': 'Godzilla 1998',
+    'Godzilla (2014)': 'Godzilla 2014'
+  };
+
+  if (specialLabels[title]) {
+    return specialLabels[title];
+  }
+
   const yearMatch = title.match(/\((\d{4})\)$/);
   if (yearMatch) {
     return yearMatch[1];
   }
 
-  const specialLabels = {
+  const compactLabels = {
     'Godzilla Raids Again': 'Raids Again',
     'King Kong vs. Godzilla': 'Kong vs. Godzilla',
     'Mothra vs. Godzilla': 'Mothra',
@@ -259,8 +260,8 @@ function getWheelLabel(title) {
     'Destroy All Monsters': 'Destroy All',
     'All Monsters Attack': 'All Monsters',
     'Terror of Mechagodzilla': 'Terror Mecha',
-    'Godzilla 1985': '1985',
-    'Godzilla 2000': '2000',
+    'Godzilla 1985': 'Godzilla 1985',
+    'Godzilla 2000': 'Godzilla 2000',
     'Godzilla and Mothra: The Battle for Earth': 'Mothra Battle',
     'Godzilla, Mothra and King Ghidorah: Giant Monsters All-Out Attack': 'G.M.K.',
     'Godzilla Against Mechagodzilla': 'Against Mecha',
@@ -286,7 +287,7 @@ function getWheelLabel(title) {
     'Godzilla: King of the Monsters': 'King Monsters'
   };
 
-  return specialLabels[title] || title.replace(/^Godzilla\s+/, '').slice(0, 14);
+  return compactLabels[title] || title.replace(/^Godzilla\s+/, '').slice(0, 14);
 }
 
 function launchConfetti() {
@@ -426,7 +427,7 @@ function renderWheel() {
     const angle = (index + 0.5) * segmentAngle;
     const textFlip = angle > 90 && angle < 270 ? 180 : 0;
     label.className = 'wheel-label';
-    label.textContent = getWheelLabel(movie);
+    label.textContent = movie;
     label.title = movie;
     label.setAttribute('aria-label', movie);
     label.style.transform = `translate(-50%, -50%) rotate(${angle}deg) translateY(-190px) rotate(${90 + textFlip}deg)`;
@@ -598,4 +599,3 @@ window.addEventListener('pointerdown', unlockAudioContext, { once: true });
 spinBtn.addEventListener('click', spinWheel);
 
 renderAll();
-loadGodzillaHero();
