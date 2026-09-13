@@ -102,6 +102,16 @@ const continuityDescriptions = {
   'Standalone films: Minus continuity': 'Watch in release order: Minus One, then Minus Zero.',
   MonsterVerse: 'Watch in release order; these films share one continuing timeline.'
 };
+const continuityImages = {
+  'Showa era': 'Godzilla%20eras/Godzilla%20showa%20era.png',
+  'Heisei era': 'Godzilla%20eras/hesei%20era.png',
+  'Millennium era': 'Godzilla%20eras/Godzilla%20millennium%20era.png',
+  'Millennium era: Kiryu series': 'Godzilla%20eras/Godzilla%20Kiryu.jpg',
+  'Standalone films': 'Godzilla%20eras/Godzilla%20standalone%20films.jpg',
+  'Standalone films: anime trilogy': 'Godzilla%20eras/Godzilla%20anime%20trilogy.jpg',
+  'Standalone films: Minus continuity': 'Godzilla%20eras/Godzilla%20minus%20continuity.jpg',
+  MonsterVerse: 'Godzilla%20eras/Godzilla%20monsterverse.png'
+};
 const movieLookup = Object.fromEntries(
   movieCatalog.map((movie, index) => [movie.title, {
     ...movie,
@@ -466,6 +476,7 @@ function renderAvailableList() {
     .map((continuity) => `
       <li class="continuity-group">
         <h3>${continuity}</h3>
+        <img class="continuity-image" src="${continuityImages[continuity]}" alt="${continuity}" />
         <p class="continuity-description">${continuityDescriptions[continuity]}</p>
         <ul class="continuity-movies">
           ${groupedMovies[continuity]
