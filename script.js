@@ -37,7 +37,16 @@ const movieCatalog = [
   { title: 'Godzilla vs. Kong', releaseDate: '2021', runtime: '1h 53m', accent: '#d4b83f' },
   { title: 'Godzilla Minus One', releaseDate: '2023', runtime: '2h 4m', accent: '#496b4b' },
   { title: 'Godzilla X Kong: The New Empire', releaseDate: '2024', runtime: '1h 55m', accent: '#c4d65a' },
-  { title: 'Godzilla Minus Zero', releaseDate: '2026-11-06', runtime: '2h 15m', accent: '#d1662c' }
+  { title: 'Godzilla Minus Zero', releaseDate: '2026-11-06', runtime: '2h 15m', accent: '#d1662c' },
+  { title: 'Rodan', releaseDate: '1956', runtime: '1h 22m', accent: '#557a3e' },
+  { title: 'Varan', releaseDate: '1958', runtime: '1h 27m', accent: '#277a78' },
+  { title: 'Mothra', releaseDate: '1961', runtime: '1h 41m', accent: '#a8c957' },
+  { title: 'Atragon', releaseDate: '1963', runtime: '1h 37m', accent: '#b38d35' },
+  { title: 'Frankenstein vs. Baragon', releaseDate: '1965', runtime: '1h 33m', accent: '#8f2d24' },
+  { title: 'The War of the Gargantuas', releaseDate: '1966', runtime: '1h 28m', accent: '#d1662c' },
+  { title: 'King Kong Escapes', releaseDate: '1967', runtime: '1h 44m', accent: '#496b4b' },
+  { title: 'Space Amoeba', releaseDate: '1970', runtime: '1h 35m', accent: '#c4d65a' },
+  { title: 'Godzilla x Kong: Supernova', releaseDate: '2027-03-26', runtime: 'Not announced', accent: '#d9572b' }
 ];
 
 const movies = movieCatalog.map((movie) => movie.title);
@@ -81,6 +90,15 @@ const continuityByTitle = {
   'Godzilla: King of the Monsters': 'MonsterVerse',
   'Godzilla vs. Kong': 'MonsterVerse',
   'Godzilla X Kong: The New Empire': 'MonsterVerse'
+  , 'Godzilla x Kong: Supernova': 'MonsterVerse',
+  'Rodan': 'Showa era',
+  'Varan': 'Showa era',
+  'Mothra': 'Showa era',
+  'Atragon': 'Showa era',
+  'Frankenstein vs. Baragon': 'Showa era',
+  'The War of the Gargantuas': 'Showa era',
+  'King Kong Escapes': 'Showa era',
+  'Space Amoeba': 'Showa era'
 };
 const continuityOrder = [
   'Showa era',
@@ -116,7 +134,7 @@ const movieLookup = Object.fromEntries(
   movieCatalog.map((movie, index) => [movie.title, {
     ...movie,
     continuity: continuityByTitle[movie.title] || 'Continuity not classified',
-    poster: `posters/${String(index + 1).padStart(2, '0')}.jpg`,
+    poster: movie.generatedPoster ? createPoster(movie.title, movie.accent) : `posters/${String(index + 1).padStart(2, '0')}.jpg`,
     fallbackPoster: createPoster(movie.title, movie.accent)
   }])
 );
@@ -305,6 +323,11 @@ function formatMovieDetails(entry) {
   return `Released ${formatReleaseDate(entry.releaseDate)} | ${entry.runtime}`;
 }
 
+function getReleaseSortValue(dateString) {
+  const normalizedDate = /^\d{4}$/.test(dateString) ? `${dateString}-01-01` : dateString;
+  return new Date(`${normalizedDate}T00:00:00`).getTime();
+}
+
 function getWheelLabel(title) {
   const specialLabels = {
     'Godzilla (1954)': 'Godzilla',
@@ -470,6 +493,13 @@ function renderAvailableList() {
     groups[continuity].push(title);
     return groups;
   }, {});
+
+  Object.values(groupedMovies).forEach((titles) => {
+    titles.sort((firstTitle, secondTitle) => {
+      const releaseDifference = getReleaseSortValue(movieLookup[firstTitle].releaseDate) - getReleaseSortValue(movieLookup[secondTitle].releaseDate);
+      return releaseDifference || firstTitle.localeCompare(secondTitle);
+    });
+  });
 
   availableList.innerHTML = continuityOrder
     .filter((continuity) => groupedMovies[continuity]?.length)
