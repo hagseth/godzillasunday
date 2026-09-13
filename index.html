@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Godzilla Sunday</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Movie night ritual</p>
+          <h1>Godzilla Sunday</h1>
+        </div>
+        <img id="godzilla-hero" class="godzilla-hero" src="" alt="Godzilla poster" />
+        <div class="topbar-actions">
+          <button id="download-log-btn" class="secondary-btn" type="button">Download log.txt</button>
+          <button id="reset-btn" class="secondary-btn" type="button">Reset watch log</button>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="wheel-panel card">
+          <div class="status-row">
+            <span class="status-pill">Every Sunday</span>
+            <p id="status-line">Ready to spin.</p>
+          </div>
+
+          <div class="wheel-area">
+            <div class="pointer" aria-hidden="true"></div>
+            <div id="wheel" class="wheel" aria-label="Godzilla movie wheel">
+              <div id="wheel-labels" class="wheel-labels"></div>
+            </div>
+          </div>
+
+          <button id="spin-btn" class="primary-btn" type="button">Spin the wheel</button>
+        </section>
+
+        <aside class="side-panel">
+          <section class="card">
+            <h2>Movie pool</h2>
+            <ul id="available-list" class="movie-list"></ul>
+          </section>
+
+          <section class="card">
+            <h2>Watched log</h2>
+            <ul id="watched-list" class="history-list"></ul>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <div id="result-modal" class="result-modal" hidden>
+      <div class="result-modal-card" role="dialog" aria-modal="true" aria-labelledby="result-title">
+        <p class="result-eyebrow">Tonight's kaiju pick</p>
+        <img id="result-poster" class="result-poster" src="" alt="" />
+        <h2 id="result-title"></h2>
+        <p id="result-details" class="result-details"></p>
+        <button id="result-ok-btn" class="primary-btn result-ok-btn" type="button">OK</button>
+      </div>
+    </div>
+    <div id="confetti-container" class="confetti-container" aria-hidden="true"></div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
