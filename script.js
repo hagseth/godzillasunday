@@ -512,6 +512,17 @@ function stopSpinSound() {
   spinAudioNodes = null;
 }
 
+function getWheelRotation() {
+  const transform = window.getComputedStyle(wheelRotator).transform;
+
+  if (!transform || transform === 'none') {
+    return currentRotation;
+  }
+
+  const matrix = new DOMMatrix(transform);
+  return (Math.atan2(matrix.b, matrix.a) * 180) / Math.PI;
+}
+
 function spinWheel() {
   if (spinning) {
     return;
@@ -525,8 +536,13 @@ function spinWheel() {
   }
 
   unlockAudioContext();
+  currentRotation = getWheelRotation();
   spinning = true;
   wheelRotator.classList.add('is-spinning');
+  wheelRotator.style.setProperty('--idle-start', `${currentRotation}deg`);
+  wheelRotator.style.transition = 'none';
+  wheelRotator.style.transform = `rotate(${currentRotation}deg)`;
+  wheelRotator.offsetWidth;
   spinBtn.disabled = true;
   statusLine.textContent = 'Spinning...';
   startSpinSound();
