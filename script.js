@@ -170,8 +170,10 @@ let spinning = false;
 const posterCache = new Map();
 let spinAudioContext = null;
 let spinAudioNodes = null;
+let clickNoiseBuffer = null;
 const SPIN_DURATION_MS = 10000;
 const MIN_SPINS = 12;
+const SPIN_EASING = [0.12, 0.82, 0.2, 1];
 
 function splitTitleIntoLines(title) {
   const words = title.split(' ');
@@ -687,44 +689,33 @@ function unlockAudioContext() {
   }
 }
 
-function startSpinSound() {
+function startSpinSound(totalRotationDeg, segmentAngleDeg) {
   unlockAudioContext();
   if (!spinAudioContext) {
     return;
   }
 
   const now = spinAudioContext.currentTime;
-  const oscillator = spinAudioContext.createOscillator();
-  const oscillator2 = spinAudioContext.createOscillator();
-  const gainNode = spinAudioContext.createGain();
-  const filter = spinAudioContext.createBiquadFilter();
+  const durationSeconds = SPIN_DURATION_MS / 1000;
 
-  oscillator.type = 'triangle';
-  oscillator2.type = 'sine';
-  oscillator.frequency.setValueAtTime(58, now);
-  oscillator2.frequency.setValueAtTime(84, now);
+  const rumble = spinAudioContext.createOscillator();
+  const rumbleGain = spinAudioContext.createGain();
+  rumble.type = 'sine';
+  rumble.frequency.setValueAtTime(70, now);
+  rumble.frequency.exponentialRampToValueAtTime(36, now + durationSeconds);
+  rumbleGain.gain.setValueAtTime(0.0001, now);
+  rumbleGain.gain.exponentialRampToValueAtTime(0.05, now + 0.3);
+  rumbleGain.gain.exponentialRampToValueAtTime(0.028, now + durationSeconds - 0.4);
+  rumbleGain.gain.exponentialRampToValueAtTime(0.0001, now + durationSeconds);
+  rumble.connect(rumbleGain);
+  rumbleGain.connect(spinAudioContext.destination);
+  rumble.start(now);
+  rumble.stop(now + durationSeconds + 0.05);
 
-  oscillator.frequency.exponentialRampToValueAtTime(24, now + SPIN_DURATION_MS / 1000);
-  oscillator2.frequency.exponentialRampToValueAtTime(20, now + SPIN_DURATION_MS / 1000);
+  const tickOffsets = buildSpinTickSchedule(totalRotationDeg, segmentAngleDeg);
+  tickOffsets.forEach((offset) => scheduleWheelTick(now + offset));
 
-  filter.type = 'lowpass';
-  filter.frequency.setValueAtTime(900, now);
-  filter.Q.value = 0.7;
-
-  gainNode.gain.setValueAtTime(0.0001, now);
-  gainNode.gain.exponentialRampToValueAtTime(0.14, now + 0.2);
-  gainNode.gain.exponentialRampToValueAtTime(0.10, now + 1.5);
-  gainNode.gain.exponentialRampToValueAtTime(0.0001, now + SPIN_DURATION_MS / 1000);
-
-  oscillator.connect(filter);
-  oscillator2.connect(filter);
-  filter.connect(gainNode);
-  gainNode.connect(spinAudioContext.destination);
-
-  oscillator.start(now);
-  oscillator2.start(now);
-
-  spinAudioNodes = { oscillator, oscillator2, gainNode, filter };
+  spinAudioNodes = { rumble, rumbleGain };
 }
 
 function stopSpinSound() {
@@ -732,16 +723,128 @@ function stopSpinSound() {
     return;
   }
 
-  const { oscillator, oscillator2, gainNode } = spinAudioNodes;
+  const { rumble, rumbleGain } = spinAudioNodes;
   const now = spinAudioContext.currentTime;
 
-  gainNode.gain.cancelScheduledValues(now);
-  gainNode.gain.setValueAtTime(gainNode.gain.value || 0.0001, now);
-  gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+  rumbleGain.gain.cancelScheduledValues(now);
+  rumbleGain.gain.setValueAtTime(rumbleGain.gain.value || 0.0001, now);
+  rumbleGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+  rumble.stop(now + 0.2);
 
-  oscillator.stop(now + 0.18);
-  oscillator2.stop(now + 0.18);
   spinAudioNodes = null;
+}
+
+// Samples the wheel's CSS cubic-bezier(0.12, 0.82, 0.2, 1) so tick timing matches what's on screen.
+function sampleSpinEasing(timeFraction) {
+  const [x1, y1, x2, y2] = SPIN_EASING;
+  const cx = 3 * x1;
+  const bx = 3 * (x2 - x1) - cx;
+  const ax = 1 - cx - bx;
+  const cy = 3 * y1;
+  const by = 3 * (y2 - y1) - cy;
+  const ay = 1 - cy - by;
+
+  const sampleCurveX = (t) => ((ax * t + bx) * t + cx) * t;
+  const sampleCurveY = (t) => ((ay * t + by) * t + cy) * t;
+  const sampleCurveDerivativeX = (t) => (3 * ax * t + 2 * bx) * t + cx;
+
+  let t2 = timeFraction;
+  for (let i = 0; i < 8; i += 1) {
+    const currentX = sampleCurveX(t2) - timeFraction;
+    if (Math.abs(currentX) < 1e-6) {
+      break;
+    }
+    const derivative = sampleCurveDerivativeX(t2);
+    if (Math.abs(derivative) < 1e-6) {
+      break;
+    }
+    t2 -= currentX / derivative;
+  }
+
+  return sampleCurveY(t2);
+}
+
+function invertSpinEasing(targetProgress) {
+  let low = 0;
+  let high = 1;
+
+  for (let i = 0; i < 24; i += 1) {
+    const mid = (low + high) / 2;
+    if (sampleSpinEasing(mid) < targetProgress) {
+      low = mid;
+    } else {
+      high = mid;
+    }
+  }
+
+  return (low + high) / 2;
+}
+
+function buildSpinTickSchedule(totalRotationDeg, segmentAngleDeg) {
+  if (!totalRotationDeg || !segmentAngleDeg) {
+    return [];
+  }
+
+  const totalSegmentCrossings = Math.floor(totalRotationDeg / segmentAngleDeg);
+  const minGapSeconds = 0.045;
+  const scheduled = [];
+  let lastTime = -Infinity;
+
+  for (let crossing = 1; crossing <= totalSegmentCrossings; crossing += 1) {
+    const targetProgress = (crossing * segmentAngleDeg) / totalRotationDeg;
+    if (targetProgress >= 1) {
+      break;
+    }
+
+    const time = invertSpinEasing(targetProgress) * (SPIN_DURATION_MS / 1000);
+    if (time - lastTime >= minGapSeconds) {
+      scheduled.push(time);
+      lastTime = time;
+    }
+  }
+
+  return scheduled;
+}
+
+function getClickNoiseBuffer() {
+  if (clickNoiseBuffer) {
+    return clickNoiseBuffer;
+  }
+
+  const durationSeconds = 0.08;
+  const sampleRate = spinAudioContext.sampleRate;
+  const length = Math.floor(sampleRate * durationSeconds);
+  const buffer = spinAudioContext.createBuffer(1, length, sampleRate);
+  const data = buffer.getChannelData(0);
+
+  for (let i = 0; i < length; i += 1) {
+    data[i] = Math.random() * 2 - 1;
+  }
+
+  clickNoiseBuffer = buffer;
+  return clickNoiseBuffer;
+}
+
+function scheduleWheelTick(time) {
+  const source = spinAudioContext.createBufferSource();
+  source.buffer = getClickNoiseBuffer();
+
+  const filter = spinAudioContext.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.setValueAtTime(1500 + Math.random() * 500, time);
+  filter.Q.value = 5;
+
+  const gain = spinAudioContext.createGain();
+  const peak = 0.2 + Math.random() * 0.08;
+  gain.gain.setValueAtTime(0.0001, time);
+  gain.gain.exponentialRampToValueAtTime(peak, time + 0.004);
+  gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.05);
+
+  source.connect(filter);
+  filter.connect(gain);
+  gain.connect(spinAudioContext.destination);
+  source.start(time);
+  source.stop(time + 0.07);
 }
 
 function getWheelRotation() {
@@ -777,7 +880,6 @@ function spinWheel() {
   wheelRotator.offsetWidth;
   spinBtn.disabled = true;
   statusLine.textContent = 'Spinning...';
-  startSpinSound();
 
   const selectedIndex = Math.floor(Math.random() * available.length);
   const selectedMovie = available[selectedIndex];
@@ -786,6 +888,8 @@ function spinWheel() {
   const extraTurns = MIN_SPINS + Math.floor(Math.random() * 4);
   const pointerOffset = 360 - ((segmentCenter + 90) % 360);
   const nextRotation = currentRotation + extraTurns * 360 + pointerOffset;
+
+  startSpinSound(nextRotation - currentRotation, segmentAngle);
 
   wheelRotator.style.transition = `transform ${SPIN_DURATION_MS}ms cubic-bezier(0.12, 0.82, 0.2, 1)`;
   wheelRotator.style.transform = `rotate(${nextRotation}deg)`;
