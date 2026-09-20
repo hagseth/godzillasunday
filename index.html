@@ -61,14 +61,19 @@
         <img id="result-poster" class="result-poster" src="" alt="" />
         <h2 id="result-title"></h2>
         <p id="result-details" class="result-details"></p>
+        <div id="result-watched-edit" class="result-watched-edit" hidden>
+          <label for="result-watched-date">Watched on</label>
+          <input id="result-watched-date" type="date" />
+        </div>
         <div class="result-actions">
           <button id="result-cancel-btn" class="secondary-btn result-cancel-btn" type="button">Cancel</button>
+          <button id="result-remove-btn" class="secondary-btn result-remove-btn" type="button" hidden>Remove from watchlist</button>
           <button id="result-add-btn" class="primary-btn result-add-btn" type="button">Add to watchlist</button>
         </div>
       </div>
     </div>
     <div id="confetti-container" class="confetti-container" aria-hidden="true"></div>
 
-    <script src="script.js?v=4"></script>
+    <script src="script.js?v=6"></script>
   </body>
 </html>

@@ -518,15 +518,47 @@ h1 {
   color: #d4e6a8;
 }
 
+.result-watched-edit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: -12px 0 22px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.result-watched-edit input {
+  border: 1px solid rgba(174, 211, 112, 0.28);
+  background: rgba(15, 23, 42, 0.5);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 5px 8px;
+  font: inherit;
+  color-scheme: dark;
+}
+
 .result-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
 }
 
 .result-cancel-btn,
+.result-remove-btn,
 .result-add-btn {
   min-width: 130px;
+}
+
+.result-remove-btn {
+  color: #f8b4a3;
+  border-color: rgba(228, 87, 46, 0.5);
+}
+
+.result-remove-btn:hover {
+  background: rgba(228, 87, 46, 0.16);
+  border-color: #e4572e;
 }
 
 .result-add-btn {

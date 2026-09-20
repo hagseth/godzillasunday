@@ -157,10 +157,14 @@ const resultTitle = document.getElementById('result-title');
 const resultDetails = document.getElementById('result-details');
 const resultCancelBtn = document.getElementById('result-cancel-btn');
 const resultAddBtn = document.getElementById('result-add-btn');
+const resultRemoveBtn = document.getElementById('result-remove-btn');
+const resultWatchedEdit = document.getElementById('result-watched-edit');
+const resultWatchedDateInput = document.getElementById('result-watched-date');
 const confettiContainer = document.getElementById('confetti-container');
 
 let watched = loadWatched();
 let pendingResult = null;
+let previewedTitle = null;
 let currentRotation = 0;
 let spinning = false;
 const posterCache = new Map();
@@ -324,6 +328,14 @@ function formatMovieDetails(entry) {
   return `Released ${formatReleaseDate(entry.releaseDate)} | ${entry.runtime}`;
 }
 
+function toDateInputValue(dateString) {
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function getReleaseSortValue(dateString) {
   const normalizedDate = /^\d{4}$/.test(dateString) ? `${dateString}-01-01` : dateString;
   return new Date(`${normalizedDate}T00:00:00`).getTime();
@@ -437,7 +449,10 @@ function hideResultModal() {
   resultModal.hidden = true;
   resultModal.classList.remove('preview-mode');
   resultAddBtn.hidden = false;
+  resultRemoveBtn.hidden = true;
+  resultWatchedEdit.hidden = true;
   resultCancelBtn.textContent = 'Cancel';
+  previewedTitle = null;
 }
 
 function showMoviePreview(title) {
@@ -448,15 +463,52 @@ function showMoviePreview(title) {
   }
 
   pendingResult = null;
+  previewedTitle = title;
   resultPoster.src = entry.poster;
   resultPoster.alt = `${entry.title} poster`;
   resultTitle.textContent = entry.title;
   resultDetails.textContent = formatMovieDetails(entry);
+  resultWatchedDateInput.value = toDateInputValue(entry.watchedAt);
+  resultWatchedEdit.hidden = false;
   resultModal.classList.add('preview-mode');
   resultAddBtn.hidden = true;
+  resultRemoveBtn.hidden = false;
   resultCancelBtn.textContent = 'Close';
   resultModal.hidden = false;
   resultCancelBtn.focus();
+}
+
+function updatePreviewedWatchedDate() {
+  if (!previewedTitle || !resultWatchedDateInput.value) {
+    return;
+  }
+
+  const entry = watched.find((movie) => movie.title === previewedTitle);
+
+  if (!entry) {
+    return;
+  }
+
+  const updatedDate = new Date(entry.watchedAt);
+  const [year, month, day] = resultWatchedDateInput.value.split('-').map(Number);
+  updatedDate.setFullYear(year, month - 1, day);
+  entry.watchedAt = updatedDate.toISOString();
+  saveWatched();
+  statusLine.textContent = `${entry.title}'s watched date was updated.`;
+  renderAll();
+}
+
+function removePreviewedMovie() {
+  if (!previewedTitle) {
+    return;
+  }
+
+  const removedTitle = previewedTitle;
+  watched = watched.filter((entry) => entry.title !== removedTitle);
+  saveWatched();
+  statusLine.textContent = `${removedTitle} was removed from the watchlist.`;
+  hideResultModal();
+  renderAll();
 }
 
 function addPendingResult() {
@@ -788,6 +840,8 @@ watchedList.addEventListener('click', (event) => {
 });
 resultCancelBtn?.addEventListener('click', cancelPendingResult);
 resultAddBtn?.addEventListener('click', addPendingResult);
+resultRemoveBtn?.addEventListener('click', removePreviewedMovie);
+resultWatchedDateInput?.addEventListener('change', updatePreviewedWatchedDate);
 window.addEventListener('pointerdown', unlockAudioContext, { once: true });
 spinBtn.addEventListener('click', spinWheel);
 
