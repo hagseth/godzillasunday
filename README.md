@@ -1,18 +1,22 @@
 # Godzilla Sunday
 
-Godzilla Sunday is a small movie-night app for watching our way through the Godzilla films one Sunday at a time. The wheel picks the next movie, we decide whether to add it to the watched log, and the movie is removed from the pool once we have watched it.
+Godzilla Sunday is a movie-night companion for watching our way through the Godzilla films, one Sunday at a time. Movies are organized by continuity/era with a short viewing-order note for each, so you can browse and pick with intent, or spin the wheel and let it choose for you. Either way, once a movie is logged it comes off the board and moves into the watched log — where the poster, release date, and runtime are all one click away.
 
 ![Godzilla](https://i.pinimg.com/originals/84/9d/02/849d02234c926810d4ae9ec8d40a04fa.gif)
 
-The goal is to make it all the way through the full list without having to decide what to watch every week.
+The goal is to make it all the way through the full catalog without having to decide what to watch every week — while still keeping the freedom to watch things in the right order when it matters.
 
 ## Features
 
-- A slowly turning wheel for choosing a movie at random
-- The complete 40-title catalog from the supplied IMDb list
-- A result popup with the poster, release information, runtime, confetti, and Add or Cancel choices
-- A watched log with the watch date and movie details
-- Automatic removal from the movie pool after a movie is added to the watchlist
+- **Movie pool grouped by continuity/era** (Showa, Heisei, Millennium, MonsterVerse, standalone films, and more), each with a short note on whether release order matters and an era image
+- **The complete catalog**, expanded past the original Godzilla films to include connected kaiju movies from the wider continuity
+- **A slowly turning wheel** for choosing a movie at random when you don't want to pick
+- **Manual "Add to watched"** buttons in the pool for logging a movie directly, without spinning
+- **A result popup** after each spin with the poster, release info, runtime, confetti, and Add or Cancel choices
+- **A watched log** showing the watch date and movie details for everything logged so far
+- **Click any watched movie** to reopen its poster/details popup, correct its logged watch date, or remove it from the watchlist entirely
+- **Live progress counters** for how many movies are watched and how many are left
+- Automatic removal from the movie pool once a movie is logged as watched
 - A reset button for starting the full run again
 - Browser storage so the watched log stays saved on the same device
 - A `log.txt` download for keeping a separate copy of the history
